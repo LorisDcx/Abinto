@@ -144,6 +144,7 @@
     let resizeObserver;
     let touchStartX = 0;
     let touchStartY = 0;
+    let touchStartedInsideOffer = false;
 
     const twoDigits = (number) => String(number).padStart(2, '0');
     if (sliderTotal) sliderTotal.textContent = twoDigits(count);
@@ -244,9 +245,14 @@
       const touch = event.changedTouches[0];
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
+      touchStartedInsideOffer = Boolean(event.target.closest('.offers-grid'));
     }, { passive: true });
 
     serviceViewport.addEventListener('touchend', (event) => {
+      if (touchStartedInsideOffer) {
+        touchStartedInsideOffer = false;
+        return;
+      }
       const touch = event.changedTouches[0];
       const deltaX = touch.clientX - touchStartX;
       const deltaY = touch.clientY - touchStartY;

@@ -1,0 +1,80 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="styles.css"><style>body{margin:0} .contact--signature{min-height:100vh}</style></head><body><section class="section contact contact--signature" data-focal="135" id="contact"><div aria-hidden="true" class="contact-atmosphere"><span class="contact-beam contact-beam--one"></span><span class="contact-beam contact-beam--two"></span><span class="contact-orb contact-orb--one"></span><span class="contact-orb contact-orb--two"></span></div>
+<div class="container contact-stage reveal">
+<div class="contact-intro">
+<div aria-hidden="true" class="contact-mascot"><span class="contact-mascot-ring contact-mascot-ring--outer"></span><span class="contact-mascot-ring contact-mascot-ring--inner"></span><span class="contact-record-dot"></span><img alt="" src="assets/abinto-fox.png"/></div>
+<p class="section-label">Contact</p>
+<h2>Parlons de votre projet.</h2>
+<p>Une date, un lieu, une idée encore floue ou un projet déjà cadré : envoyez-moi les éléments que vous avez. Je vous répondrai avec une proposition claire.</p>
+<div class="contact-direct">
+<span>Réponse personnelle</span>
+<span>Projet étudié sans engagement</span>
+</div>
+</div>
+<form action="/api/contact" class="contact-form contact-form--signature" data-contact-form="" method="post" novalidate=""><div class="contact-form-topline"><span>NOUVEAU PROJET</span><span>REC ●</span></div>
+<div class="contact-form-grid">
+<div class="form-field">
+<label for="contact-name">Nom et prénom</label>
+<input autocomplete="name" id="contact-name" name="name" required="" type="text"/>
+</div>
+<div class="form-field">
+<label for="contact-email">E-mail</label>
+<input autocomplete="email" id="contact-email" name="email" required="" type="email"/>
+</div>
+<div class="form-field">
+<label for="contact-phone">Téléphone <span>facultatif</span></label>
+<input autocomplete="tel" id="contact-phone" name="phone" type="tel"/>
+</div>
+<div class="form-field">
+<label for="contact-project">Type de projet</label>
+<select id="contact-project" name="projectType" required="">
+<option value="">Choisir</option>
+<option>Entreprise</option>
+<option>Mariage</option>
+<option>Anniversaire</option>
+<option>Baptême</option>
+<option>Clip musical</option>
+<option>Publicité</option>
+<option>Documentaire</option>
+<option>Fiction</option>
+<option>Autre projet</option>
+</select>
+</div>
+<div class="form-field">
+<label for="contact-date">Date ou période <span>facultatif</span></label>
+<input id="contact-date" name="date" placeholder="Ex. septembre 2026" type="text"/>
+</div>
+<div class="form-field">
+<label for="contact-location">Lieu <span>facultatif</span></label>
+<input autocomplete="address-level2" id="contact-location" name="location" placeholder="Ville ou région" type="text"/>
+</div>
+<div class="form-field form-field--full">
+<label for="contact-budget">Budget envisagé <span>facultatif</span></label>
+<select id="contact-budget" name="budget">
+<option value="">À définir ensemble</option>
+<option>Moins de 500 €</option>
+<option>500 € à 1 000 €</option>
+<option>1 000 € à 2 000 €</option>
+<option>2 000 € à 4 000 €</option>
+<option>Plus de 4 000 €</option>
+</select>
+</div>
+<div class="form-field form-field--full">
+<label for="contact-message">Votre projet</label>
+<textarea id="contact-message" name="message" placeholder="Racontez-moi ce que vous souhaitez filmer, l’ambiance recherchée et les contraintes déjà connues." required="" rows="6"></textarea>
+</div>
+<div aria-hidden="true" class="form-honeypot">
+<label for="contact-website">Site internet</label>
+<input autocomplete="off" id="contact-website" name="website" tabindex="-1" type="text"/>
+</div>
+</div>
+<label class="form-consent">
+<input name="consent" required="" type="checkbox" value="yes"/>
+<span>J’accepte d’être recontacté au sujet de cette demande.</span>
+</label>
+<div class="contact-form-footer">
+<button class="button button--dark" type="submit">Envoyer la demande</button>
+<p aria-live="polite" class="form-status" data-form-status=""></p>
+</div>
+</form>
+</div>
+</section></body></html>

@@ -367,10 +367,11 @@ h1, h2, h3, p { margin-top: 0; }
 
 .agency-credit {
   margin-top: 1.25rem;
+  margin-left: 1rem;
   font-size: 0.75rem;
   line-height: 1.5;
   opacity: 0.62;
-  text-align: center;
+  text-align: center +50px;
   width: 100%;
   max-width: 1180px;
   margin-left: auto;

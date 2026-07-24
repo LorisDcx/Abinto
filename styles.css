@@ -365,6 +365,30 @@ h1, h2, h3, p { margin-top: 0; }
 .footer-inner { display: flex; justify-content: space-between; gap: 24px; font-size: 12px; }
 .footer-inner a { text-underline-offset: 4px; }
 
+.agency-credit {
+  margin-top: 1.25rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  opacity: 0.62;
+}
+
+.agency-credit a {
+  color: inherit;
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 180ms ease;
+}
+
+.agency-credit:hover {
+  opacity: 1;
+}
+
+.agency-credit a:hover,
+.agency-credit a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .video-dialog {
   width: min(1120px, calc(100% - 32px));
   max-width: none;

@@ -327,7 +327,7 @@ async function createCalendarEvent(settings, event) {
   // A consumer Google service account can write to a shared calendar, but it
   // cannot send Google Calendar invitations to external attendees. Resend
   // sends the confirmation and attached .ics invitation instead.
-  return googleCalendarRequest(settings, `/calendars/${encodeURIComponent(settings.calendarId)}/events?sendUpdates=none`, {
+  return googleCalendarRequest(settings, `/calendars/${encodeURIComponent(settings.calendarId)}/events`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(event)

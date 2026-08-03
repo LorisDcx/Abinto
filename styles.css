@@ -3874,17 +3874,24 @@ body[data-page="reservation"] { background: #eee9e5; }
   .calendar-panel-head {
     position: relative;
     display: block;
-    min-height: 44px;
+    min-height: 60px;
+  }
+
+  .calendar-panel-head > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 52px;
   }
 
   .calendar-panel-head .booking-kicker {
-    position: absolute;
-    top: 9px;
-    left: 0;
-    margin: 0;
+    position: static;
+    order: 2;
+    margin: 8px 0 0;
   }
 
   .calendar-panel-head h1 {
+    order: 1;
     margin: 0;
     font-size: clamp(26px, 2.25vw, 36px);
     line-height: 1.05;
@@ -3970,5 +3977,28 @@ body[data-page="reservation"] { background: #eee9e5; }
 
   .appointment-form-footer .button {
     min-height: 44px;
+  }
+
+  .appointment-success {
+    padding-top: 42px;
+  }
+
+  .appointment-success h2 {
+    font-family: 'Manrope', Arial, sans-serif;
+    font-size: clamp(32px, 2.6vw, 42px);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -.055em;
+  }
+
+  .appointment-success > p:not(.booking-kicker) {
+    max-width: 420px;
+    margin-top: 22px;
+    line-height: 1.75;
+  }
+
+  .appointment-success-actions {
+    margin-top: 32px;
+    gap: 16px;
   }
 }

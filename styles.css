@@ -3850,3 +3850,94 @@ body[data-page="reservation"] { background: #eee9e5; }
   .appointment-shell { width: min(calc(100% - 24px), 1400px); }
   .booking-calendar { min-height: 270px; }
 }
+
+/* --- V23 : calendrier plus compact sur ordinateur --- */
+@media (min-width: 901px) {
+  .appointment-page {
+    padding: calc(var(--header-height) + 18px) 0 18px;
+  }
+
+  .appointment-workspace {
+    min-height: calc(100svh - var(--header-height) - 36px);
+  }
+
+  .calendar-panel,
+  .appointment-form-panel {
+    padding: clamp(24px, 2.8vw, 36px);
+  }
+
+  .calendar-panel-head,
+  .appointment-form-head {
+    padding-bottom: 18px;
+  }
+
+  .calendar-month-bar {
+    margin: 18px 0 14px;
+  }
+
+  .calendar-fox {
+    width: 42px;
+    height: 42px;
+  }
+
+  .booking-calendar {
+    min-height: clamp(225px, 22vw, 300px);
+    grid-template-rows: repeat(6, minmax(36px, 1fr));
+    gap: 5px;
+  }
+
+  .booking-calendar-day {
+    min-height: 38px;
+    font-size: 13px;
+  }
+
+  .booking-calendar-day i {
+    bottom: 5px;
+  }
+
+  .appointment-slots {
+    margin-top: 18px;
+    padding-top: 17px;
+  }
+
+  .appointment-slots .booking-slots {
+    min-height: 42px;
+    margin-top: 11px;
+    gap: 7px;
+  }
+
+  .appointment-slots .booking-slot {
+    min-height: 38px;
+    font-size: 12px;
+  }
+
+  .appointment-form {
+    margin-top: 19px;
+  }
+
+  .appointment-form-grid {
+    gap: 12px 16px;
+  }
+
+  .appointment-form .form-field input {
+    min-height: 36px;
+    padding: 5px 1px;
+  }
+
+  .appointment-form .form-field textarea {
+    min-height: 58px;
+  }
+
+  .appointment-consent {
+    margin-top: 14px;
+  }
+
+  .appointment-form-footer {
+    margin-top: 15px;
+    gap: 8px;
+  }
+
+  .appointment-form-footer .button {
+    min-height: 44px;
+  }
+}

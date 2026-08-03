@@ -75,9 +75,6 @@ module.exports = async function bookingHandler(req, res) {
       ].filter(Boolean).join('\n'),
       start: { dateTime: start.toISOString(), timeZone: settings.timezone },
       end: { dateTime: end.toISOString(), timeZone: settings.timezone },
-      attendees: [{ email, displayName: name }],
-      guestsCanModify: false,
-      guestsCanInviteOthers: false,
       reminders: { useDefault: true }
     });
 

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="#b51f2a" name="theme-color"/>
+<meta content="strict-origin-when-cross-origin" name="referrer"/>
+<meta content="Réservez votre rendez-vous gratuit avec ABINTO." name="description"/>
+<title>Réserver un rendez-vous — ABINTO</title>
+<link href="assets/favicon.png" rel="icon" type="image/png"/>
+<link href="styles.css" rel="stylesheet"/>
+<script>document.documentElement.classList.add('js');</script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+</head>
+<body data-page="reservation">
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+<header class="site-header reservation-header" id="site-header">
+<div class="header-inner">
+<a aria-label="ABINTO — retour à l’accueil" class="brand brand--lockup" href="index.html#accueil">
+<img alt="" aria-hidden="true" class="brand-fox" src="assets/abinto-fox.png"/>
+<img alt="ABINTO" class="brand-wordmark" src="assets/abinto-wordmark.png"/>
+</a>
+<nav aria-label="Navigation principale" class="main-nav">
+<a href="index.html">Accueil</a>
+<a href="prestations.html">Prestations</a>
+<a aria-current="page" href="reservation.html">Rendez-vous</a>
+</nav>
+<a class="header-cta" href="index.html#contact">Parler d’un projet</a>
+</div>
+</header>
+<main id="contenu">
+<section aria-labelledby="appointment-title" class="appointment-page" data-booking="">
+<div class="container appointment-shell">
+<div class="appointment-heading reveal">
+<p class="section-label">Premier échange</p>
+<h1 id="appointment-title">Réservez votre<br/>rendez-vous gratuit.</h1>
+<p>Choisissez un créneau dans l’agenda puis donnez-moi quelques informations. Le rendez-vous est confirmé immédiatement par e-mail.</p>
+<div class="appointment-notes">
+<span><b>30 min</b> pour faire le point</span>
+<span><b>Visio ou téléphone</b>, selon votre préférence</span>
+</div>
+</div>
+<div class="appointment-workspace reveal">
+<section aria-labelledby="calendar-title" class="calendar-panel">
+<div class="calendar-panel-head">
+<div><p class="booking-kicker">Étape 1</p><h2 id="calendar-title">Choisissez une date</h2></div>
+<span aria-hidden="true" class="calendar-fox"><img alt="" src="assets/abinto-fox.png"/></span>
+</div>
+<div class="calendar-month-bar">
+<button aria-label="Mois précédent" class="calendar-nav" data-booking-month-prev="" type="button">←</button>
+<p aria-live="polite" data-booking-month-label="">Chargement du calendrier</p>
+<button aria-label="Mois suivant" class="calendar-nav" data-booking-month-next="" type="button">→</button>
+</div>
+<div aria-hidden="true" class="calendar-weekdays"><span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span></div>
+<div aria-label="Calendrier des disponibilités" class="booking-calendar" data-booking-calendar=""></div>
+<div class="booking-slot-area appointment-slots">
+<div class="booking-slot-head"><p data-booking-selected-date="">Sélectionnez une date disponible</p><span data-booking-duration="">30 min</span></div>
+<div aria-live="polite" class="booking-slots" data-booking-slots=""><p class="booking-loading">Les créneaux disponibles vont apparaître ici.</p></div>
+</div>
+</section>
+<aside aria-labelledby="appointment-form-title" class="appointment-form-panel">
+<div class="appointment-form-head"><p class="booking-kicker">Étape 2</p><h2 id="appointment-form-title">Vos coordonnées</h2><p>Je les utilise uniquement pour confirmer votre rendez-vous et préparer notre échange.</p></div>
+<form action="/api/booking" class="appointment-form" data-booking-form="" method="post" novalidate="">
+<input name="start" type="hidden" data-booking-start=""/>
+<div class="booking-selection" data-booking-selection="" hidden=""><span>Votre rendez-vous</span><strong data-booking-selection-label=""></strong></div>
+<div class="appointment-form-grid">
+<div class="form-field"><label for="booking-firstname">Prénom</label><input autocomplete="given-name" id="booking-firstname" name="firstname" required="" type="text"/></div>
+<div class="form-field"><label for="booking-lastname">Nom</label><input autocomplete="family-name" id="booking-lastname" name="lastname" required="" type="text"/></div>
+<div class="form-field form-field--full"><label for="booking-email">Adresse e-mail</label><input autocomplete="email" id="booking-email" name="email" required="" type="email"/></div>
+<div class="form-field"><label for="booking-phone">Téléphone <span>facultatif</span></label><input autocomplete="tel" id="booking-phone" name="phone" type="tel"/></div>
+<div class="form-field"><label for="booking-company">Entreprise <span>facultatif</span></label><input autocomplete="organization" id="booking-company" name="company" type="text"/></div>
+<div class="form-field form-field--full"><label for="booking-message">Quelques mots sur votre besoin <span>facultatif</span></label><textarea id="booking-message" name="message" placeholder="Ex. un film de présentation, un mariage, une série de contenus…" rows="4"></textarea></div>
+<div aria-hidden="true" class="form-honeypot"><label for="booking-website">Site internet</label><input autocomplete="off" id="booking-website" name="website" tabindex="-1" type="text"/></div>
+</div>
+<label class="form-consent appointment-consent"><input name="consent" required="" type="checkbox" value="yes"/><span>J’accepte d’être recontacté au sujet de ce rendez-vous.</span></label>
+<div class="appointment-form-footer"><button class="button button--dark" type="submit" disabled="">Réserver mon rendez-vous gratuit</button><p aria-live="polite" class="form-status" data-booking-status=""></p></div>
+</form>
+<div aria-live="polite" class="booking-success appointment-success" data-booking-success="" hidden="">
+<p class="booking-kicker">C’est confirmé</p><h2>À très vite.</h2><p>Votre rendez-vous du <strong data-booking-success-date=""></strong> est enregistré. L’invitation vous attend dans votre boîte e-mail.</p>
+<div class="booking-success-actions"><a class="button button--dark" data-booking-google-calendar="" href="#">Ajouter à Google Agenda</a><button class="text-link" data-booking-ics="" type="button">Télécharger l’invitation .ics</button></div>
+</div>
+</aside>
+</div>
+</div>
+</section>
+</main>
+<footer class="site-footer">
+<div class="container footer-inner"><span>ABINTO · Vidéaste professionnel</span><a href="prestations.html">Prestations</a><a href="index.html">Accueil</a></div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>

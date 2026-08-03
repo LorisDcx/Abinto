@@ -349,7 +349,10 @@
 
   const booking = document.querySelector('[data-booking]');
   if (booking) {
-    const dateStrip = booking.querySelector('[data-booking-dates]');
+    const calendarGrid = booking.querySelector('[data-booking-calendar]');
+    const monthLabel = booking.querySelector('[data-booking-month-label]');
+    const previousMonth = booking.querySelector('[data-booking-month-prev]');
+    const nextMonth = booking.querySelector('[data-booking-month-next]');
     const slotsContainer = booking.querySelector('[data-booking-slots]');
     const selectedDateLabel = booking.querySelector('[data-booking-selected-date]');
     const durationLabel = booking.querySelector('[data-booking-duration]');
@@ -363,14 +366,20 @@
     const successDate = booking.querySelector('[data-booking-success-date]');
     const googleCalendarLink = booking.querySelector('[data-booking-google-calendar]');
     const icsButton = booking.querySelector('[data-booking-ics]');
-    const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
     const dayFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
     const defaultButtonText = submitButton?.textContent || 'Confirmer le rendez-vous';
     let requestId = 0;
     let selectedDay = '';
     let selectedSlot = null;
     let bookingTimezone = 'Europe/Paris';
     let bookingDuration = 30;
+    let bookingWindowDays = 45;
+    let monthSlots = new Map();
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    const firstAvailableMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    let visibleMonth = new Date(firstAvailableMonth);
 
     function localDateKey(date) {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -379,6 +388,17 @@
     function dayFromKey(key) {
       const [year, month, day] = key.split('-').map(Number);
       return new Date(year, month - 1, day, 12);
+    }
+
+    function monthKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function clearSelectedSlot() {
+      selectedSlot = null;
+      if (bookingStart) bookingStart.value = '';
+      if (selection) selection.hidden = true;
+      submitButton?.setAttribute('disabled', '');
     }
 
     function setBookingStatus(message, state = '') {
@@ -397,31 +417,6 @@
         hour: '2-digit',
         minute: '2-digit'
       }).format(new Date(iso));
-    }
-
-    function renderDateStrip() {
-      if (!dateStrip) return;
-      const firstDay = new Date();
-      firstDay.setHours(12, 0, 0, 0);
-      dateStrip.replaceChildren();
-
-      for (let offset = 0; offset < 14; offset += 1) {
-        const date = new Date(firstDay);
-        date.setDate(firstDay.getDate() + offset);
-        const key = localDateKey(date);
-        const formatted = dateFormatter.formatToParts(date);
-        const weekday = formatted.find((part) => part.type === 'weekday')?.value.replace('.', '') || '';
-        const day = formatted.find((part) => part.type === 'day')?.value || '';
-        const month = formatted.find((part) => part.type === 'month')?.value.replace('.', '') || '';
-        const button = document.createElement('button');
-        button.className = 'booking-date';
-        button.type = 'button';
-        button.dataset.bookingDate = key;
-        button.setAttribute('aria-label', dayFormatter.format(date));
-        button.innerHTML = `<span>${weekday}</span><strong>${day}</strong><span>${month}</span>`;
-        button.addEventListener('click', () => loadSlots(key));
-        dateStrip.appendChild(button);
-      }
     }
 
     function renderSlots(slots) {
@@ -456,39 +451,111 @@
       setBookingStatus('');
     }
 
-    async function loadSlots(dayKey) {
-      const thisRequest = ++requestId;
+    function selectDay(dayKey) {
+      const day = monthSlots.get(dayKey);
+      if (!day?.slots?.length) return;
       selectedDay = dayKey;
-      selectedSlot = null;
-      if (bookingStart) bookingStart.value = '';
-      if (selection) selection.hidden = true;
-      submitButton?.setAttribute('disabled', '');
+      clearSelectedSlot();
       setBookingStatus('');
-
-      dateStrip?.querySelectorAll('.booking-date').forEach((button) => {
-        const active = button.dataset.bookingDate === dayKey;
-        button.classList.toggle('is-selected', active);
-        button.setAttribute('aria-pressed', String(active));
-      });
       if (selectedDateLabel) selectedDateLabel.textContent = dayFormatter.format(dayFromKey(dayKey));
-      if (slotsContainer) slotsContainer.innerHTML = '<p class="booking-loading">Recherche des créneaux disponibles…</p>';
+      renderCalendar();
+      renderSlots(day.slots);
+    }
+
+    function renderCalendar() {
+      if (!calendarGrid) return;
+      calendarGrid.replaceChildren();
+      if (monthLabel) monthLabel.textContent = monthFormatter.format(visibleMonth);
+
+      const year = visibleMonth.getFullYear();
+      const month = visibleMonth.getMonth();
+      const leadingDays = (new Date(year, month, 1).getDay() + 6) % 7;
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const lastBookableDate = new Date(today);
+      lastBookableDate.setDate(lastBookableDate.getDate() + bookingWindowDays);
+
+      for (let blank = 0; blank < leadingDays; blank += 1) {
+        const spacer = document.createElement('span');
+        spacer.className = 'booking-calendar-empty';
+        spacer.setAttribute('aria-hidden', 'true');
+        calendarGrid.appendChild(spacer);
+      }
+
+      for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber += 1) {
+        const date = new Date(year, month, dayNumber, 12);
+        const key = localDateKey(date);
+        const availability = monthSlots.get(key);
+        const available = Boolean(availability?.slots?.length);
+        const inRange = date >= today && date <= lastBookableDate;
+        const button = document.createElement('button');
+        button.className = 'booking-calendar-day';
+        button.type = 'button';
+        button.disabled = !available || !inRange;
+        button.textContent = String(dayNumber);
+        button.setAttribute('aria-label', `${dayFormatter.format(date)}${available ? ', créneaux disponibles' : ', indisponible'}`);
+        button.setAttribute('aria-pressed', String(key === selectedDay));
+        button.classList.toggle('is-today', key === localDateKey(today));
+        button.classList.toggle('has-slots', available && inRange);
+        button.classList.toggle('is-selected', key === selectedDay);
+        if (available && inRange) {
+          const indicator = document.createElement('i');
+          indicator.setAttribute('aria-hidden', 'true');
+          button.appendChild(indicator);
+          button.addEventListener('click', () => selectDay(key));
+        }
+        calendarGrid.appendChild(button);
+      }
+
+      const lastBookableMonth = new Date(lastBookableDate.getFullYear(), lastBookableDate.getMonth(), 1);
+      const followingMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1);
+      if (previousMonth) previousMonth.disabled = visibleMonth <= firstAvailableMonth;
+      if (nextMonth) nextMonth.disabled = followingMonth > lastBookableMonth;
+    }
+
+    function showCalendarMessage(messageText) {
+      if (!slotsContainer) return;
+      slotsContainer.replaceChildren();
+      const message = document.createElement('p');
+      message.className = 'booking-empty';
+      message.textContent = messageText;
+      slotsContainer.appendChild(message);
+    }
+
+    async function loadMonth(preferredDate = '') {
+      const thisRequest = ++requestId;
+      clearSelectedSlot();
+      selectedDay = '';
+      setBookingStatus('');
+      monthSlots = new Map();
+      if (selectedDateLabel) selectedDateLabel.textContent = 'Chargement des disponibilités…';
+      if (slotsContainer) slotsContainer.innerHTML = '<p class="booking-loading">Lecture de l’agenda en cours…</p>';
+      renderCalendar();
 
       try {
-        const response = await fetch(`/api/availability?date=${encodeURIComponent(dayKey)}`, { headers: { Accept: 'application/json' } });
+        const response = await fetch(`/api/availability?month=${encodeURIComponent(monthKey(visibleMonth))}`, { headers: { Accept: 'application/json' } });
         const result = await response.json().catch(() => ({}));
         if (thisRequest !== requestId) return;
-        if (!response.ok) throw new Error(result.error || 'Impossible de charger les créneaux.');
+        if (!response.ok) throw new Error(result.error || 'Impossible de charger le calendrier.');
         bookingTimezone = result.timezone || bookingTimezone;
         bookingDuration = result.durationMinutes || bookingDuration;
+        bookingWindowDays = result.windowDays || bookingWindowDays;
         if (durationLabel) durationLabel.textContent = `${bookingDuration} min`;
-        renderSlots(result.slots || []);
+        monthSlots = new Map((result.days || []).map((day) => [day.date, day]));
+        const requested = monthSlots.get(preferredDate);
+        const firstAvailableDay = [...monthSlots.values()].find((day) => day.slots?.length);
+        renderCalendar();
+        if (requested?.slots?.length) {
+          selectDay(preferredDate);
+        } else if (firstAvailableDay) {
+          selectDay(firstAvailableDay.date);
+        } else {
+          if (selectedDateLabel) selectedDateLabel.textContent = 'Aucune disponibilité ce mois-ci';
+          showCalendarMessage('Aucun créneau n’est disponible ce mois-ci. Essayez le mois suivant.');
+        }
       } catch (error) {
-        if (thisRequest !== requestId || !slotsContainer) return;
-        slotsContainer.replaceChildren();
-        const message = document.createElement('p');
-        message.className = 'booking-empty';
-        message.textContent = error.message || 'Les créneaux sont momentanément indisponibles.';
-        slotsContainer.appendChild(message);
+        if (thisRequest !== requestId) return;
+        if (selectedDateLabel) selectedDateLabel.textContent = 'Calendrier indisponible';
+        showCalendarMessage(error.message || 'Les créneaux sont momentanément indisponibles.');
       }
     }
 
@@ -563,12 +630,26 @@
         setBookingStatus(error.message || 'Une erreur est survenue. Réessayez dans quelques instants.', 'error');
         submitButton?.removeAttribute('disabled');
         if (submitButton) submitButton.textContent = defaultButtonText;
-        if (error.message?.includes('vient d’être réservé')) loadSlots(selectedDay);
+        if (error.message?.includes('vient d’être réservé')) loadMonth(selectedDay);
       }
     });
 
-    renderDateStrip();
-    loadSlots(localDateKey(new Date()));
+    previousMonth?.addEventListener('click', () => {
+      if (visibleMonth <= firstAvailableMonth) return;
+      visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
+      loadMonth();
+    });
+    nextMonth?.addEventListener('click', () => {
+      const lastBookableDate = new Date(today);
+      lastBookableDate.setDate(lastBookableDate.getDate() + bookingWindowDays);
+      const candidate = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1);
+      const lastBookableMonth = new Date(lastBookableDate.getFullYear(), lastBookableDate.getMonth(), 1);
+      if (candidate > lastBookableMonth) return;
+      visibleMonth = candidate;
+      loadMonth();
+    });
+
+    loadMonth();
   }
 
   function updateScrollProgress() {

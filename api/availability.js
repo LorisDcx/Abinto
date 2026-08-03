@@ -2,6 +2,7 @@
 
 const {
   getAvailableSlots,
+  getMonthAvailableSlots,
   getSettings,
   httpError,
   requireBookingConfiguration
@@ -18,10 +19,25 @@ module.exports = async function availabilityHandler(req, res) {
   try {
     const url = new URL(req.url, 'https://abinto-production.fr');
     const date = url.searchParams.get('date');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw httpError('Date de réservation invalide.', 400);
+    const month = url.searchParams.get('month');
+    if (Boolean(date) === Boolean(month)) throw httpError('Indiquez une date ou un mois de réservation.', 400);
 
     const settings = getSettings();
     requireBookingConfiguration(settings);
+
+    if (month) {
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw httpError('Mois de réservation invalide.', 400);
+      const days = await getMonthAvailableSlots(settings, month);
+      return res.status(200).json({
+        month,
+        days,
+        timezone: settings.timezone,
+        durationMinutes: settings.durationMinutes,
+        windowDays: settings.windowDays
+      });
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw httpError('Date de réservation invalide.', 400);
     const slots = await getAvailableSlots(settings, date);
 
     return res.status(200).json({

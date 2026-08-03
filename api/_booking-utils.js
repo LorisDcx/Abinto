@@ -122,6 +122,12 @@ function parseDateKey(value) {
   return { year, month, day };
 }
 
+function parseMonthKey(value) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value || '')) return null;
+  const [year, month] = value.split('-').map(Number);
+  return { year, month };
+}
+
 function zonedDateTimeToUtc({ year, month, day, hour, minute }, timezone) {
   let utc = Date.UTC(year, month - 1, day, hour, minute, 0);
 
@@ -265,6 +271,22 @@ async function getAvailableSlots(settings, dayKey) {
   return buildSlots(dayKey, settings, busyPeriods);
 }
 
+async function getMonthAvailableSlots(settings, monthKey) {
+  const month = parseMonthKey(monthKey);
+  if (!month) return [];
+
+  const firstDay = zonedDateTimeToUtc({ ...month, day: 1, hour: 0, minute: 0 }, settings.timezone);
+  const nextMonth = month.month === 12 ? { year: month.year + 1, month: 1 } : { year: month.year, month: month.month + 1 };
+  const end = zonedDateTimeToUtc({ ...nextMonth, day: 1, hour: 0, minute: 0 }, settings.timezone);
+  const busyPeriods = await getBusyPeriods(settings, firstDay, end);
+  const dayCount = new Date(Date.UTC(month.year, month.month, 0)).getUTCDate();
+
+  return Array.from({ length: dayCount }, (_, index) => {
+    const date = `${monthKey}-${String(index + 1).padStart(2, '0')}`;
+    return { date, slots: buildSlots(date, settings, busyPeriods) };
+  });
+}
+
 async function createCalendarEvent(settings, event) {
   return googleCalendarRequest(settings, `/calendars/${encodeURIComponent(settings.calendarId)}/events?sendUpdates=all`, {
     method: 'POST',
@@ -335,6 +357,7 @@ module.exports = {
   escapeHtml,
   formatBookingDate,
   getAvailableSlots,
+  getMonthAvailableSlots,
   getSettings,
   httpError,
   parseBody,

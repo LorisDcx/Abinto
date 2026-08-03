@@ -249,7 +249,11 @@ async function getGoogleAccessToken(settings) {
   const result = await response.json().catch(() => ({}));
   if (!response.ok || !result.access_token) {
     console.error('Google OAuth error:', result);
-    throw httpError('La connexion à l’agenda est momentanément indisponible.', 502);
+    const oauthError = typeof result.error === 'string' ? result.error : result.error?.code;
+    if (oauthError === 'invalid_grant' || oauthError === 'unauthorized_client') {
+      throw httpError('Google refuse l’identification du compte de service. Vérifiez que GOOGLE_SERVICE_ACCOUNT_EMAIL et la clé privée proviennent du même fichier JSON Google.', 503);
+    }
+    throw httpError('Google n’a pas pu authentifier le compte de service. Vérifiez sa configuration dans Vercel puis réessayez.', 503);
   }
   return result.access_token;
 }
@@ -266,6 +270,9 @@ async function googleCalendarRequest(settings, path, options = {}) {
   const result = await response.json().catch(() => ({}));
   if (!response.ok) {
     console.error('Google Calendar error:', result);
+    if (response.status === 403 || response.status === 404) {
+      throw httpError('Ce calendrier n’est pas accessible au compte de service. Partagez-le avec l’adresse GOOGLE_SERVICE_ACCOUNT_EMAIL et vérifiez GOOGLE_CALENDAR_ID dans Vercel.', 503);
+    }
     throw httpError('La connexion à l’agenda est momentanément indisponible.', 502);
   }
   return result;
@@ -284,7 +291,10 @@ async function getBusyPeriods(settings, timeMin, timeMax) {
   });
 
   const calendar = result.calendars?.[settings.calendarId];
-  if (calendar?.errors?.length) throw httpError('La connexion à l’agenda est momentanément indisponible.', 502);
+  if (calendar?.errors?.length) {
+    console.error('Google Calendar freeBusy error:', calendar.errors);
+    throw httpError('Ce calendrier n’est pas accessible au compte de service. Partagez-le avec l’adresse GOOGLE_SERVICE_ACCOUNT_EMAIL et vérifiez GOOGLE_CALENDAR_ID dans Vercel.', 503);
+  }
   return (calendar?.busy || []).map((period) => ({ start: new Date(period.start), end: new Date(period.end) }));
 }
 

@@ -3871,6 +3871,32 @@ body[data-page="reservation"] { background: #eee9e5; }
     padding-bottom: 18px;
   }
 
+  .calendar-panel-head {
+    position: relative;
+    display: block;
+    min-height: 44px;
+  }
+
+  .calendar-panel-head .booking-kicker {
+    position: absolute;
+    top: 9px;
+    left: 0;
+    margin: 0;
+  }
+
+  .calendar-panel-head h1 {
+    margin: 0;
+    font-size: clamp(26px, 2.25vw, 36px);
+    line-height: 1.05;
+    text-align: center;
+  }
+
+  .calendar-fox {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
   .calendar-month-bar {
     margin: 18px 0 14px;
   }
@@ -3887,6 +3913,7 @@ body[data-page="reservation"] { background: #eee9e5; }
   }
 
   .booking-calendar-day {
+    aspect-ratio: auto;
     min-height: 38px;
     font-size: 13px;
   }
@@ -3913,6 +3940,10 @@ body[data-page="reservation"] { background: #eee9e5; }
 
   .appointment-form {
     margin-top: 19px;
+  }
+
+  .appointment-form-panel {
+    justify-content: flex-start;
   }
 
   .appointment-form-grid {

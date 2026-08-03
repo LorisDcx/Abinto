@@ -3339,21 +3339,6 @@ body[data-page="reservation"] { background: #eee9e5; }
 .appointment-page::before { width: min(68vw, 980px); aspect-ratio: 1; top: -48%; left: -30%; }
 .appointment-page::after { width: min(44vw, 640px); aspect-ratio: 1; right: -23%; bottom: -36%; }
 .appointment-shell { position: relative; z-index: 1; }
-.appointment-heading { max-width: 800px; margin: 0 0 clamp(42px, 6vw, 70px); }
-.appointment-heading .section-label { margin-bottom: 16px; color: rgba(181,31,42,.78); }
-.appointment-heading h1 {
-  max-width: 720px;
-  margin: 0 0 22px;
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: clamp(56px, 7vw, 104px);
-  font-weight: 400;
-  line-height: .84;
-  letter-spacing: -.055em;
-}
-.appointment-heading > p:not(.section-label) { max-width: 570px; margin: 0; color: var(--muted); font-size: 17px; line-height: 1.72; }
-.appointment-notes { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 26px; color: rgba(17,17,18,.66); font-size: 12px; }
-.appointment-notes span { padding-left: 14px; border-left: 2px solid var(--red); }
-.appointment-notes b { color: var(--ink); font-weight: 700; }
 .appointment-workspace { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(330px, .82fr); align-items: stretch; box-shadow: 0 28px 80px rgba(41,25,27,.12); }
 .calendar-panel { padding: clamp(24px, 4vw, 48px); background: #fffdfa; border: 1px solid rgba(17,17,18,.09); border-right: 0; border-radius: 10px 0 0 10px; }
 .calendar-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-bottom: 26px; border-bottom: 1px solid rgba(17,17,18,.11); }
@@ -3450,8 +3435,6 @@ body[data-page="reservation"] { background: #eee9e5; }
 }
 @media (max-width: 560px) {
   .appointment-page { padding-top: calc(var(--header-height) + 44px); }
-  .appointment-heading h1 { font-size: 54px; }
-  .appointment-heading > p:not(.section-label) { font-size: 15px; }
   .appointment-workspace { box-shadow: 0 20px 55px rgba(41,25,27,.12); }
   .calendar-panel,
   .appointment-form-panel { padding: 23px 18px; }
@@ -3833,4 +3816,37 @@ body[data-page="reservation"] { background: #eee9e5; }
   .services-v13 .chapter-arrow--side.chapter-arrow--next {
     right: max(4px, env(safe-area-inset-right));
   }
+}
+
+/* --- V22 : priorité page de réservation --- */
+.appointment-page {
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding: calc(var(--header-height) + 34px) 0 34px;
+}
+.appointment-shell { width: min(calc(100% - var(--gutter) * 2), 1400px); }
+.appointment-workspace {
+  grid-template-columns: minmax(0, 1.3fr) minmax(390px, .82fr);
+  min-height: calc(100svh - var(--header-height) - 68px);
+}
+.calendar-panel { display: flex; flex-direction: column; }
+.calendar-panel-head h1,
+.calendar-panel-head h2,
+.appointment-form-head h2,
+.appointment-success h2 { font-size: clamp(38px, 3.5vw, 56px); }
+.booking-calendar { min-height: clamp(330px, 34vw, 465px); grid-template-rows: repeat(6, minmax(48px, 1fr)); }
+.booking-calendar-day { min-height: 52px; font-size: 14px; }
+.appointment-slots { margin-top: auto; }
+.appointment-form-panel { display: flex; flex-direction: column; justify-content: center; }
+.appointment-form-head { padding-top: 4px; }
+
+@media (max-width: 900px) {
+  .appointment-page { display: block; padding-top: calc(var(--header-height) + 28px); }
+  .appointment-workspace { grid-template-columns: 1fr; min-height: 0; }
+}
+@media (max-width: 560px) {
+  .appointment-page { padding-top: calc(var(--header-height) + 18px); padding-bottom: 20px; }
+  .appointment-shell { width: min(calc(100% - 24px), 1400px); }
+  .booking-calendar { min-height: 270px; }
 }

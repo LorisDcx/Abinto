@@ -60,6 +60,26 @@ function readAvailability(value) {
   }
 }
 
+function normalizeServiceAccountPrivateKey(value) {
+  if (!value) return '';
+  let key = String(value).trim();
+
+  // Accept the private_key value from Google’s JSON file, including the two
+  // common ways Vercel stores line breaks (real breaks or literal "\\n").
+  try {
+    const parsed = JSON.parse(key);
+    if (parsed && typeof parsed === 'object' && typeof parsed.private_key === 'string') key = parsed.private_key;
+    else if (typeof parsed === 'string') key = parsed;
+  } catch (_) {
+    // The variable is already a plain PEM value.
+  }
+
+  return key
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/\\n/g, '\n')
+    .trim();
+}
+
 function getSettings() {
   return {
     timezone: process.env.BOOKING_TIMEZONE || 'Europe/Paris',
@@ -70,7 +90,7 @@ function getSettings() {
     availability: readAvailability(process.env.BOOKING_AVAILABILITY),
     calendarId: process.env.GOOGLE_CALENDAR_ID,
     serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    serviceAccountPrivateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    serviceAccountPrivateKey: normalizeServiceAccountPrivateKey(process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY),
     resendApiKey: process.env.RESEND_API_KEY,
     fromEmail: process.env.BOOKING_FROM_EMAIL || process.env.CONTACT_FROM_EMAIL,
     ownerEmail: process.env.CONTACT_TO_EMAIL
@@ -78,8 +98,8 @@ function getSettings() {
 }
 
 function requireBookingConfiguration(settings) {
-  if (!settings.calendarId || !settings.serviceAccountEmail || !settings.serviceAccountPrivateKey) {
-    throw httpError('La réservation est en cours de configuration. Merci de réessayer un peu plus tard.', 503);
+  if (!settings.calendarId || !settings.serviceAccountEmail || !settings.serviceAccountPrivateKey.includes('BEGIN PRIVATE KEY')) {
+    throw httpError('La connexion à l’agenda doit être finalisée. Merci de réessayer un peu plus tard.', 503);
   }
   if (!settings.resendApiKey || !settings.fromEmail || !settings.ownerEmail) {
     throw httpError('La confirmation par e-mail est en cours de configuration. Merci de réessayer un peu plus tard.', 503);
@@ -210,7 +230,13 @@ async function getGoogleAccessToken(settings) {
   const signer = createSign('RSA-SHA256');
   signer.update(unsignedToken);
   signer.end();
-  const signature = base64Url(signer.sign(settings.serviceAccountPrivateKey));
+  let signature;
+  try {
+    signature = base64Url(signer.sign(settings.serviceAccountPrivateKey));
+  } catch (error) {
+    console.error('Google private key configuration error:', error.code || error.message);
+    throw httpError('La connexion à l’agenda doit être finalisée. Vérifiez la clé privée Google dans Vercel.', 503);
+  }
 
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',

@@ -31,21 +31,12 @@
 </div>
 </header>
 <main id="contenu">
-<section aria-labelledby="appointment-title" class="appointment-page" data-booking="">
+<section aria-label="Réservation d’un rendez-vous" class="appointment-page" data-booking="">
 <div class="container appointment-shell">
-<div class="appointment-heading reveal">
-<p class="section-label">Premier échange</p>
-<h1 id="appointment-title">Réservez votre<br/>rendez-vous gratuit.</h1>
-<p>Choisissez un créneau dans l’agenda puis donnez-moi quelques informations. Le rendez-vous est confirmé immédiatement par e-mail.</p>
-<div class="appointment-notes">
-<span><b>30 min</b> pour faire le point</span>
-<span><b>Visio ou téléphone</b>, selon votre préférence</span>
-</div>
-</div>
 <div class="appointment-workspace reveal">
 <section aria-labelledby="calendar-title" class="calendar-panel">
 <div class="calendar-panel-head">
-<div><p class="booking-kicker">Étape 1</p><h2 id="calendar-title">Choisissez une date</h2></div>
+<div><p class="booking-kicker">Rendez-vous gratuit · 30 min</p><h1 id="calendar-title">Choisissez votre créneau</h1></div>
 <span aria-hidden="true" class="calendar-fox"><img alt="" src="assets/abinto-fox.png"/></span>
 </div>
 <div class="calendar-month-bar">
@@ -61,7 +52,7 @@
 </div>
 </section>
 <aside aria-labelledby="appointment-form-title" class="appointment-form-panel">
-<div class="appointment-form-head"><p class="booking-kicker">Étape 2</p><h2 id="appointment-form-title">Vos coordonnées</h2><p>Je les utilise uniquement pour confirmer votre rendez-vous et préparer notre échange.</p></div>
+<div class="appointment-form-head"><p class="booking-kicker">Dernière étape</p><h2 id="appointment-form-title">Finalisez votre rendez-vous</h2><p>Vos coordonnées servent uniquement à confirmer votre créneau et préparer notre échange.</p></div>
 <form action="/api/booking" class="appointment-form" data-booking-form="" method="post" novalidate="">
 <input name="start" type="hidden" data-booking-start=""/>
 <div class="booking-selection" data-booking-selection="" hidden=""><span>Votre rendez-vous</span><strong data-booking-selection-label=""></strong></div>

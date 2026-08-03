@@ -23,7 +23,7 @@ La section « Réserver l’échange » est une réservation native : elle ne mo
 
 1. Créer ou choisir un calendrier Google réservé aux rendez-vous ABINTO, puis activer l’API Google Calendar dans un projet Google Cloud.
 2. Créer un compte de service Google Cloud, générer une clé JSON et partager le calendrier avec son adresse e-mail, avec l’autorisation « Modifier les événements ».
-3. Renseigner dans Vercel les variables `GOOGLE_CALENDAR_ID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL` et `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, ainsi que les variables Resend existantes. La clé privée doit garder les retours à la ligne sous la forme `\n`.
+3. Renseigner dans Vercel les variables `GOOGLE_CALENDAR_ID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL` et `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, ainsi que les variables Resend existantes. Pour la clé privée, copier uniquement la valeur `private_key` du fichier JSON Google (sans guillemets autour), en gardant les retours à la ligne sous la forme `\n`.
 4. Ajuster les règles `BOOKING_*` si besoin. Les horaires sont en heure de Paris ; `BOOKING_AVAILABILITY` accepte des plages par jour, de `0` (dimanche) à `6` (samedi). Les horaires déjà occupés dans Google Calendar sont automatiquement retirés.
 
 Le fichier `.env.example` contient une configuration complète à adapter. Ne jamais y mettre la vraie clé privée du compte de service.

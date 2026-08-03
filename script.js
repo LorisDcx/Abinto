@@ -324,6 +324,253 @@
     });
   }
 
+  function applyOfferContext() {
+    const params = new URLSearchParams(window.location.search);
+    const formula = params.get('formula');
+    if (!formula || !contactForm) return;
+
+    const offerField = contactForm.querySelector('[data-offer-field]');
+    const offerInput = contactForm.querySelector('[name="offer"]');
+    const projectType = params.get('projectType');
+    const projectSelect = contactForm.querySelector('[name="projectType"]');
+    const message = contactForm.querySelector('[name="message"]');
+
+    if (offerInput) offerInput.value = formula;
+    if (offerField) offerField.hidden = false;
+    if (projectType && projectSelect && [...projectSelect.options].some((option) => option.value === projectType)) {
+      projectSelect.value = projectType;
+    }
+    if (message && !message.value.trim()) {
+      message.value = `Bonjour ABINTO,\n\nJe souhaite échanger à propos de la formule « ${formula} ».\n\n`;
+    }
+  }
+
+  applyOfferContext();
+
+  const booking = document.querySelector('[data-booking]');
+  if (booking) {
+    const dateStrip = booking.querySelector('[data-booking-dates]');
+    const slotsContainer = booking.querySelector('[data-booking-slots]');
+    const selectedDateLabel = booking.querySelector('[data-booking-selected-date]');
+    const durationLabel = booking.querySelector('[data-booking-duration]');
+    const bookingForm = booking.querySelector('[data-booking-form]');
+    const bookingStart = booking.querySelector('[data-booking-start]');
+    const selection = booking.querySelector('[data-booking-selection]');
+    const selectionLabel = booking.querySelector('[data-booking-selection-label]');
+    const bookingStatus = booking.querySelector('[data-booking-status]');
+    const submitButton = bookingForm?.querySelector('button[type="submit"]');
+    const success = booking.querySelector('[data-booking-success]');
+    const successDate = booking.querySelector('[data-booking-success-date]');
+    const googleCalendarLink = booking.querySelector('[data-booking-google-calendar]');
+    const icsButton = booking.querySelector('[data-booking-ics]');
+    const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+    const dayFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const defaultButtonText = submitButton?.textContent || 'Confirmer le rendez-vous';
+    let requestId = 0;
+    let selectedDay = '';
+    let selectedSlot = null;
+    let bookingTimezone = 'Europe/Paris';
+    let bookingDuration = 30;
+
+    function localDateKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function dayFromKey(key) {
+      const [year, month, day] = key.split('-').map(Number);
+      return new Date(year, month - 1, day, 12);
+    }
+
+    function setBookingStatus(message, state = '') {
+      if (!bookingStatus) return;
+      bookingStatus.textContent = message;
+      bookingStatus.classList.toggle('is-success', state === 'success');
+      bookingStatus.classList.toggle('is-error', state === 'error');
+    }
+
+    function formatSlotDate(iso) {
+      return new Intl.DateTimeFormat('fr-FR', {
+        timeZone: bookingTimezone,
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date(iso));
+    }
+
+    function renderDateStrip() {
+      if (!dateStrip) return;
+      const firstDay = new Date();
+      firstDay.setHours(12, 0, 0, 0);
+      dateStrip.replaceChildren();
+
+      for (let offset = 0; offset < 14; offset += 1) {
+        const date = new Date(firstDay);
+        date.setDate(firstDay.getDate() + offset);
+        const key = localDateKey(date);
+        const formatted = dateFormatter.formatToParts(date);
+        const weekday = formatted.find((part) => part.type === 'weekday')?.value.replace('.', '') || '';
+        const day = formatted.find((part) => part.type === 'day')?.value || '';
+        const month = formatted.find((part) => part.type === 'month')?.value.replace('.', '') || '';
+        const button = document.createElement('button');
+        button.className = 'booking-date';
+        button.type = 'button';
+        button.dataset.bookingDate = key;
+        button.setAttribute('aria-label', dayFormatter.format(date));
+        button.innerHTML = `<span>${weekday}</span><strong>${day}</strong><span>${month}</span>`;
+        button.addEventListener('click', () => loadSlots(key));
+        dateStrip.appendChild(button);
+      }
+    }
+
+    function renderSlots(slots) {
+      if (!slotsContainer) return;
+      slotsContainer.replaceChildren();
+      if (!slots.length) {
+        const message = document.createElement('p');
+        message.className = 'booking-empty';
+        message.textContent = 'Aucun créneau ce jour-là. Essayez une autre date.';
+        slotsContainer.appendChild(message);
+        return;
+      }
+
+      slots.forEach((slot) => {
+        const button = document.createElement('button');
+        button.className = 'booking-slot';
+        button.type = 'button';
+        button.textContent = slot.label;
+        button.setAttribute('aria-label', `${formatSlotDate(slot.start)}, durée ${bookingDuration} minutes`);
+        button.addEventListener('click', () => selectSlot(slot, button));
+        slotsContainer.appendChild(button);
+      });
+    }
+
+    function selectSlot(slot, button) {
+      selectedSlot = slot;
+      if (bookingStart) bookingStart.value = slot.start;
+      slotsContainer?.querySelectorAll('.booking-slot').forEach((item) => item.classList.toggle('is-selected', item === button));
+      if (selection) selection.hidden = false;
+      if (selectionLabel) selectionLabel.textContent = formatSlotDate(slot.start);
+      submitButton?.removeAttribute('disabled');
+      setBookingStatus('');
+    }
+
+    async function loadSlots(dayKey) {
+      const thisRequest = ++requestId;
+      selectedDay = dayKey;
+      selectedSlot = null;
+      if (bookingStart) bookingStart.value = '';
+      if (selection) selection.hidden = true;
+      submitButton?.setAttribute('disabled', '');
+      setBookingStatus('');
+
+      dateStrip?.querySelectorAll('.booking-date').forEach((button) => {
+        const active = button.dataset.bookingDate === dayKey;
+        button.classList.toggle('is-selected', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+      if (selectedDateLabel) selectedDateLabel.textContent = dayFormatter.format(dayFromKey(dayKey));
+      if (slotsContainer) slotsContainer.innerHTML = '<p class="booking-loading">Recherche des créneaux disponibles…</p>';
+
+      try {
+        const response = await fetch(`/api/availability?date=${encodeURIComponent(dayKey)}`, { headers: { Accept: 'application/json' } });
+        const result = await response.json().catch(() => ({}));
+        if (thisRequest !== requestId) return;
+        if (!response.ok) throw new Error(result.error || 'Impossible de charger les créneaux.');
+        bookingTimezone = result.timezone || bookingTimezone;
+        bookingDuration = result.durationMinutes || bookingDuration;
+        if (durationLabel) durationLabel.textContent = `${bookingDuration} min`;
+        renderSlots(result.slots || []);
+      } catch (error) {
+        if (thisRequest !== requestId || !slotsContainer) return;
+        slotsContainer.replaceChildren();
+        const message = document.createElement('p');
+        message.className = 'booking-empty';
+        message.textContent = error.message || 'Les créneaux sont momentanément indisponibles.';
+        slotsContainer.appendChild(message);
+      }
+    }
+
+    function createIcs(slot) {
+      const compactDate = (date) => new Date(date).toISOString().replaceAll('-', '').replaceAll(':', '').replace(/\.\d{3}/, '');
+      return [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//ABINTO//Réservation//FR',
+        'CALSCALE:GREGORIAN',
+        'BEGIN:VEVENT',
+        `UID:abinto-${Date.now()}@abinto-production.fr`,
+        `DTSTAMP:${compactDate(new Date())}`,
+        `DTSTART:${compactDate(slot.start)}`,
+        `DTEND:${compactDate(slot.end)}`,
+        'SUMMARY:Échange ABINTO',
+        'DESCRIPTION:Votre échange ABINTO.',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n');
+    }
+
+    function configureCalendarActions(slot) {
+      if (googleCalendarLink) {
+        const dates = `${new Date(slot.start).toISOString().replaceAll('-', '').replaceAll(':', '').replace(/\.\d{3}/, '')}/${new Date(slot.end).toISOString().replaceAll('-', '').replaceAll(':', '').replace(/\.\d{3}/, '')}`;
+        googleCalendarLink.href = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Échange ABINTO')}&dates=${dates}&details=${encodeURIComponent('Votre échange ABINTO.')}`;
+        googleCalendarLink.target = '_blank';
+        googleCalendarLink.rel = 'noopener noreferrer';
+      }
+      icsButton?.addEventListener('click', () => {
+        const file = new Blob([createIcs(slot)], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'echange-abinto.ics';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }, { once: true });
+    }
+
+    bookingForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!selectedSlot || !bookingStart?.value) {
+        setBookingStatus('Choisissez d’abord un créneau.', 'error');
+        return;
+      }
+      if (!bookingForm.reportValidity()) return;
+
+      const payload = Object.fromEntries(new FormData(bookingForm).entries());
+      submitButton?.setAttribute('disabled', '');
+      if (submitButton) submitButton.textContent = 'Confirmation en cours…';
+      setBookingStatus('');
+
+      try {
+        const response = await fetch(bookingForm.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Impossible de confirmer le rendez-vous.');
+
+        const confirmedSlot = { start: result.start, end: result.end };
+        bookingTimezone = result.timezone || bookingTimezone;
+        if (successDate) successDate.textContent = formatSlotDate(confirmedSlot.start);
+        configureCalendarActions(confirmedSlot);
+        bookingForm.hidden = true;
+        if (success) success.hidden = false;
+      } catch (error) {
+        setBookingStatus(error.message || 'Une erreur est survenue. Réessayez dans quelques instants.', 'error');
+        submitButton?.removeAttribute('disabled');
+        if (submitButton) submitButton.textContent = defaultButtonText;
+        if (error.message?.includes('vient d’être réservé')) loadSlots(selectedDay);
+      }
+    });
+
+    renderDateStrip();
+    loadSlots(localDateKey(new Date()));
+  }
+
   function updateScrollProgress() {
     if (!header) return;
     const documentHeight = Math.max(

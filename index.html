@@ -134,6 +134,50 @@
 <article class="step reveal"><span>04</span><h3>Monter</h3><p>Donner du rythme, travailler le son et la couleur, puis livrer les formats prévus ensemble.</p></article>
 </div>
 </section>
+<section aria-labelledby="booking-title" class="section booking" id="reservation">
+<div class="container booking-layout">
+<div class="booking-intro reveal">
+<p class="section-label">Premier échange</p>
+<h2 id="booking-title">Choisissons<br/>un moment.</h2>
+<p>Un créneau simple, sans aller-retour. Choisissez le moment qui vous convient : seuls les horaires réellement disponibles apparaissent.</p>
+<div class="booking-promises">
+<span>30 min</span>
+<span>Visio ou téléphone</span>
+<span>Confirmation immédiate</span>
+</div>
+</div>
+<div class="booking-card reveal" data-booking="">
+<div class="booking-card-head">
+<div><p class="booking-kicker">Réserver l’échange</p><h3>Vos disponibilités</h3></div>
+<span aria-hidden="true" class="booking-mark"><img alt="" src="assets/abinto-fox.png"/></span>
+</div>
+<div class="booking-date-strip" aria-label="Choisir une date" data-booking-dates=""></div>
+<div class="booking-slot-area">
+<div class="booking-slot-head"><p data-booking-selected-date="">Sélectionnez une date</p><span data-booking-duration="">30 min</span></div>
+<div aria-live="polite" class="booking-slots" data-booking-slots=""><p class="booking-loading">Choisissez un jour pour voir les créneaux.</p></div>
+</div>
+<form action="/api/booking" class="booking-form" data-booking-form="" method="post" novalidate="">
+<input name="start" type="hidden" data-booking-start=""/>
+<div class="booking-selection" data-booking-selection="" hidden=""><span>Votre créneau</span><strong data-booking-selection-label=""></strong></div>
+<div class="booking-form-grid">
+<div class="form-field"><label for="booking-firstname">Prénom</label><input autocomplete="given-name" id="booking-firstname" name="firstname" required="" type="text"/></div>
+<div class="form-field"><label for="booking-lastname">Nom</label><input autocomplete="family-name" id="booking-lastname" name="lastname" required="" type="text"/></div>
+<div class="form-field form-field--full"><label for="booking-email">Adresse e-mail</label><input autocomplete="email" id="booking-email" name="email" required="" type="email"/></div>
+<div class="form-field"><label for="booking-phone">Téléphone <span>facultatif</span></label><input autocomplete="tel" id="booking-phone" name="phone" type="tel"/></div>
+<div class="form-field"><label for="booking-company">Entreprise <span>facultatif</span></label><input autocomplete="organization" id="booking-company" name="company" type="text"/></div>
+<div class="form-field form-field--full"><label for="booking-message">Un mot sur votre projet <span>facultatif</span></label><textarea id="booking-message" name="message" rows="3"></textarea></div>
+<div aria-hidden="true" class="form-honeypot"><label for="booking-website">Site internet</label><input autocomplete="off" id="booking-website" name="website" tabindex="-1" type="text"/></div>
+</div>
+<label class="form-consent booking-consent"><input name="consent" required="" type="checkbox" value="yes"/><span>J’accepte d’être recontacté au sujet de ce rendez-vous.</span></label>
+<div class="booking-form-footer"><button class="button button--dark" type="submit" disabled="">Confirmer le rendez-vous</button><p aria-live="polite" class="form-status" data-booking-status=""></p></div>
+</form>
+<div aria-live="polite" class="booking-success" data-booking-success="" hidden="">
+<p class="booking-kicker">C’est réservé</p><h3>À très vite.</h3><p>Votre créneau du <strong data-booking-success-date=""></strong> est confirmé. Vous recevrez l’invitation par e-mail.</p>
+<div class="booking-success-actions"><a class="button button--dark" data-booking-google-calendar="" href="#">Ajouter à Google Agenda</a><button class="text-link" data-booking-ics="" type="button">Télécharger l’invitation .ics</button></div>
+</div>
+</div>
+</div>
+</section>
 <section class="section section--paper contact" data-focal="135" id="contact">
 <div class="container contact-shell reveal">
 <div class="contact-card contact-card--full">
@@ -183,6 +227,10 @@
 <option>Fiction</option>
 <option>Autre projet</option>
 </select>
+</div>
+<div class="form-field form-field--full" data-offer-field="" hidden="">
+<label for="contact-offer">Formule sélectionnée</label>
+<input id="contact-offer" name="offer" readonly="" type="text"/>
 </div>
 <div class="form-field form-field--full">
 <label for="contact-message">Votre message</label>

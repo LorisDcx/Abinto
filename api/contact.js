@@ -34,12 +34,14 @@ module.exports = async function contactHandler(req, res) {
     email = '',
     phone = '',
     projectType = '',
+    offer = '',
     message = '',
     website = '',
     consent = ''
   } = body;
 
   const name = `${firstname} ${lastname}`.trim();
+  const cleanOffer = String(offer || '').trim();
 
   // Honeypot : réponse neutre pour les robots.
   if (website) return res.status(200).json({ ok: true });
@@ -53,7 +55,7 @@ module.exports = async function contactHandler(req, res) {
     return res.status(400).json({ error: 'L’adresse e-mail semble incorrecte.' });
   }
 
-  if (message.length > 8000 || name.length > 160 || email.length > 320) {
+  if (message.length > 8000 || name.length > 160 || email.length > 320 || cleanOffer.length > 240) {
     return res.status(400).json({ error: 'Le contenu envoyé est trop long.' });
   }
 
@@ -73,6 +75,7 @@ module.exports = async function contactHandler(req, res) {
     email: escapeHtml(email.trim()),
     phone: escapeHtml(phone.trim() || 'Non renseigné'),
     projectType: escapeHtml(projectType.trim()),
+    offer: escapeHtml(cleanOffer || 'Aucune formule sélectionnée'),
     message: escapeHtml(message.trim()).replaceAll('\n', '<br>')
   };
 
@@ -89,6 +92,7 @@ module.exports = async function contactHandler(req, res) {
         <p><strong>E-mail :</strong> ${safe.email}</p>
         <p><strong>Téléphone :</strong> ${safe.phone}</p>
         <p><strong>Projet :</strong> ${safe.projectType}</p>
+        <p><strong>Formule :</strong> ${safe.offer}</p>
         <hr style="border:0;border-top:1px solid #e3dbd6;margin:24px 0">
         <p style="line-height:1.65"><strong>Message :</strong><br>${safe.message}</p>
       </div>
@@ -102,6 +106,7 @@ module.exports = async function contactHandler(req, res) {
     `E-mail : ${email.trim()}`,
     `Téléphone : ${phone.trim() || 'Non renseigné'}`,
     `Projet : ${projectType.trim()}`,
+    `Formule : ${cleanOffer || 'Aucune formule sélectionnée'}`,
     '',
     message.trim()
   ].join('\n');

@@ -358,16 +358,40 @@
     const durationLabel = booking.querySelector('[data-booking-duration]');
     const bookingForm = booking.querySelector('[data-booking-form]');
     const bookingStart = booking.querySelector('[data-booking-start]');
+    const bookingServiceInput = booking.querySelector('[data-booking-service]');
+    const bookingKicker = booking.querySelector('[data-booking-kicker]');
+    const formDescription = booking.querySelector('[data-booking-form-description]');
     const selection = booking.querySelector('[data-booking-selection]');
     const selectionLabel = booking.querySelector('[data-booking-selection-label]');
     const bookingStatus = booking.querySelector('[data-booking-status]');
     const submitButton = bookingForm?.querySelector('button[type="submit"]');
     const success = booking.querySelector('[data-booking-success]');
     const successDate = booking.querySelector('[data-booking-success-date]');
+    const successPayment = booking.querySelector('[data-booking-success-payment]');
     const googleCalendarLink = booking.querySelector('[data-booking-google-calendar]');
     const icsButton = booking.querySelector('[data-booking-ics]');
     const dayFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
+    const bookingService = new URLSearchParams(window.location.search).get('service') === 'whats-up-danger'
+      ? 'whats-up-danger'
+      : 'free-exchange';
+    const isStrategicBooking = bookingService === 'whats-up-danger';
+    const calendarSummary = isStrategicBooking ? 'Rendez-vous stratégique ABINTO — What’s up danger' : 'Échange ABINTO';
+    const calendarDetails = isStrategicBooking
+      ? 'Rendez-vous stratégique What’s up danger — à partir de 60 €, à régler lors de la rencontre.'
+      : 'Votre échange ABINTO.';
+
+    if (bookingServiceInput) bookingServiceInput.value = bookingService;
+    if (isStrategicBooking) {
+      if (bookingKicker) bookingKicker.textContent = 'Rendez-vous stratégique · 1 h';
+      if (formDescription) formDescription.textContent = 'Cette séance stratégique dure 1 h. Tarif : à partir de 60 €, à régler lors de la rencontre.';
+      if (submitButton) submitButton.textContent = 'Réserver · 60 € à régler sur place';
+      if (successPayment) {
+        successPayment.hidden = false;
+        successPayment.textContent = 'Montant prévu : à partir de 60 €, à régler lors de la rencontre.';
+      }
+    }
+
     const defaultButtonText = submitButton?.textContent || 'Confirmer le rendez-vous';
     let requestId = 0;
     let selectedDay = '';
@@ -532,7 +556,8 @@
       renderCalendar();
 
       try {
-        const response = await fetch(`/api/availability?month=${encodeURIComponent(monthKey(visibleMonth))}`, { headers: { Accept: 'application/json' } });
+        const params = new URLSearchParams({ month: monthKey(visibleMonth), service: bookingService });
+        const response = await fetch(`/api/availability?${params.toString()}`, { headers: { Accept: 'application/json' } });
         const result = await response.json().catch(() => ({}));
         if (thisRequest !== requestId) return;
         if (!response.ok) throw new Error(result.error || 'Impossible de charger le calendrier.');
@@ -571,8 +596,8 @@
         `DTSTAMP:${compactDate(new Date())}`,
         `DTSTART:${compactDate(slot.start)}`,
         `DTEND:${compactDate(slot.end)}`,
-        'SUMMARY:Échange ABINTO',
-        'DESCRIPTION:Votre échange ABINTO.',
+        `SUMMARY:${calendarSummary}`,
+        `DESCRIPTION:${calendarDetails}`,
         'END:VEVENT',
         'END:VCALENDAR'
       ].join('\r\n');
@@ -581,7 +606,7 @@
     function configureCalendarActions(slot) {
       if (googleCalendarLink) {
         const dates = `${new Date(slot.start).toISOString().replaceAll('-', '').replaceAll(':', '').replace(/\.\d{3}/, '')}/${new Date(slot.end).toISOString().replaceAll('-', '').replaceAll(':', '').replace(/\.\d{3}/, '')}`;
-        googleCalendarLink.href = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Échange ABINTO')}&dates=${dates}&details=${encodeURIComponent('Votre échange ABINTO.')}`;
+        googleCalendarLink.href = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(calendarSummary)}&dates=${dates}&details=${encodeURIComponent(calendarDetails)}`;
         googleCalendarLink.target = '_blank';
         googleCalendarLink.rel = 'noopener noreferrer';
       }

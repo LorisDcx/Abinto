@@ -36,7 +36,7 @@
 <div class="appointment-workspace reveal">
 <section aria-labelledby="calendar-title" class="calendar-panel">
 <div class="calendar-panel-head">
-<div><p class="booking-kicker">Rendez-vous gratuit · 30 min</p><h1 id="calendar-title">Choisissez votre créneau</h1></div>
+<div><p class="booking-kicker" data-booking-kicker="">Rendez-vous gratuit · 30 min</p><h1 id="calendar-title">Choisissez votre créneau</h1></div>
 <span aria-hidden="true" class="calendar-fox"><img alt="" src="assets/abinto-fox.png"/></span>
 </div>
 <div class="calendar-month-bar">
@@ -52,9 +52,10 @@
 </div>
 </section>
 <aside aria-labelledby="appointment-form-title" class="appointment-form-panel">
-<div class="appointment-form-head"><p class="booking-kicker">Dernière étape</p><h2 id="appointment-form-title">Finalisez votre rendez-vous</h2><p>Vos coordonnées servent uniquement à confirmer votre créneau et préparer notre échange.</p></div>
+<div class="appointment-form-head"><p class="booking-kicker">Dernière étape</p><h2 id="appointment-form-title" data-booking-form-title="">Finalisez votre rendez-vous</h2><p data-booking-form-description="">Vos coordonnées servent uniquement à confirmer votre créneau et préparer notre échange.</p></div>
 <form action="/api/booking" class="appointment-form" data-booking-form="" method="post" novalidate="">
 <input name="start" type="hidden" data-booking-start=""/>
+<input name="service" type="hidden" data-booking-service=""/>
 <div class="booking-selection" data-booking-selection="" hidden=""><span>Votre rendez-vous</span><strong data-booking-selection-label=""></strong></div>
 <div class="appointment-form-grid">
 <div class="form-field"><label for="booking-firstname">Prénom</label><input autocomplete="given-name" id="booking-firstname" name="firstname" required="" type="text"/></div>
@@ -69,7 +70,7 @@
 <div class="appointment-form-footer"><button class="button button--dark" type="submit" disabled="">Réserver mon rendez-vous gratuit</button><p aria-live="polite" class="form-status" data-booking-status=""></p></div>
 </form>
 <div aria-live="polite" class="booking-success appointment-success" data-booking-success="" hidden="">
-<p class="booking-kicker">C’est confirmé</p><h2>À très vite.</h2><p>Votre rendez-vous du <strong data-booking-success-date=""></strong> est enregistré. L’invitation vous attend dans votre boîte e-mail.</p>
+<p class="booking-kicker">C’est confirmé</p><h2>À très vite.</h2><p>Votre rendez-vous du <strong data-booking-success-date=""></strong> est enregistré. L’invitation vous attend dans votre boîte e-mail.</p><p class="booking-payment-confirmation" data-booking-success-payment="" hidden=""></p>
 <div class="booking-success-actions"><a class="button button--dark" data-booking-google-calendar="" href="#">Ajouter à Google Agenda</a><button class="text-link" data-booking-ics="" type="button">Télécharger l’invitation .ics</button></div>
 </div>
 </aside>

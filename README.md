@@ -17,7 +17,9 @@ L’envoi utilise `/api/contact` avec Resend. Variables nécessaires :
 
 ## Réservation d’un échange
 
-La section « Réserver l’échange » est une réservation native : elle ne montre que les créneaux libres du calendrier Google choisi, crée l’événement au moment de la confirmation, envoie les invitations Google, puis envoie une confirmation Resend au client et une notification à ABINTO. Le client peut aussi ajouter le rendez-vous à Google Agenda ou télécharger un fichier `.ics` (Outlook / Apple Calendar).
+La section « Réserver l’échange » est une réservation native : elle ne montre que les créneaux libres du calendrier Google choisi, crée l’événement au moment de la confirmation, puis envoie une confirmation Resend au client et une notification à ABINTO. Le client peut aussi ajouter le rendez-vous à Google Agenda ou télécharger un fichier `.ics` (Outlook / Apple Calendar).
+
+La formule « What’s up danger » propose aussi une réservation d’1 h : le calendrier réserve une heure complète et annonce « à partir de 60 €, à régler lors de la rencontre ». Aucun paiement en ligne n’est déclenché.
 
 ### Mise en service
 

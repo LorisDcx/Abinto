@@ -10,6 +10,23 @@ const DEFAULT_AVAILABILITY = {
   5: ['09:00-12:00', '14:00-17:00']
 };
 
+const BOOKING_SERVICES = {
+  'free-exchange': {
+    id: 'free-exchange',
+    calendarSummary: 'Échange ABINTO',
+    durationMinutes: null,
+    label: 'Échange gratuit',
+    paymentNote: ''
+  },
+  'whats-up-danger': {
+    id: 'whats-up-danger',
+    calendarSummary: 'Rendez-vous stratégique ABINTO — What’s up danger',
+    durationMinutes: 60,
+    label: 'Rendez-vous stratégique « What’s up danger »',
+    paymentNote: 'À partir de 60 €, à régler lors de la rencontre.'
+  }
+};
+
 const formatterCache = new Map();
 
 function httpError(message, statusCode = 500) {
@@ -94,6 +111,20 @@ function getSettings() {
     resendApiKey: process.env.RESEND_API_KEY,
     fromEmail: process.env.BOOKING_FROM_EMAIL || process.env.CONTACT_FROM_EMAIL,
     ownerEmail: process.env.CONTACT_TO_EMAIL
+  };
+}
+
+function getBookingService(value) {
+  const serviceId = String(value || 'free-exchange');
+  const service = BOOKING_SERVICES[serviceId];
+  if (!service) throw httpError('Formule de réservation invalide.', 400);
+  return service;
+}
+
+function getSettingsForService(settings, service) {
+  return {
+    ...settings,
+    durationMinutes: service.durationMinutes || settings.durationMinutes
   };
 }
 
@@ -354,7 +385,7 @@ function escapeIcs(value = '') {
   return String(value).replaceAll('\\', '\\\\').replaceAll(';', '\\;').replaceAll(',', '\\,').replace(/\r?\n/g, '\\n');
 }
 
-function createIcs({ id, start, end, name, timezone }) {
+function createIcs({ id, start, end, name, timezone, summary = 'Échange ABINTO', description = '' }) {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -366,8 +397,8 @@ function createIcs({ id, start, end, name, timezone }) {
     `DTSTAMP:${formatIcsDate(new Date())}`,
     `DTSTART:${formatIcsDate(start)}`,
     `DTEND:${formatIcsDate(end)}`,
-    'SUMMARY:Échange ABINTO',
-    `DESCRIPTION:${escapeIcs(`Votre échange ABINTO avec ${name}. Heure locale : ${timezone}.`)}`,
+    `SUMMARY:${escapeIcs(summary)}`,
+    `DESCRIPTION:${escapeIcs(description || `Votre échange ABINTO avec ${name}. Heure locale : ${timezone}.`)}`,
     'END:VEVENT',
     'END:VCALENDAR'
   ].join('\r\n');
@@ -396,8 +427,10 @@ module.exports = {
   escapeHtml,
   formatBookingDate,
   getAvailableSlots,
+  getBookingService,
   getMonthAvailableSlots,
   getSettings,
+  getSettingsForService,
   httpError,
   parseBody,
   requireBookingConfiguration,

@@ -6,7 +6,9 @@ const {
   escapeHtml,
   formatBookingDate,
   getAvailableSlots,
+  getBookingService,
   getSettings,
+  getSettingsForService,
   httpError,
   parseBody,
   requireBookingConfiguration,
@@ -36,6 +38,7 @@ module.exports = async function bookingHandler(req, res) {
     const message = clean(body.message, 1500);
     const website = clean(body.website, 200);
     const startValue = clean(body.start, 80);
+    const service = getBookingService(clean(body.service, 80));
 
     if (website) return res.status(200).json({ ok: true });
     if (!firstname || !lastname || !email || body.consent !== 'yes' || !startValue) {
@@ -50,9 +53,10 @@ module.exports = async function bookingHandler(req, res) {
 
     const settings = getSettings();
     requireBookingConfiguration(settings);
-    const local = zonedParts(start, settings.timezone);
+    const bookingSettings = getSettingsForService(settings, service);
+    const local = zonedParts(start, bookingSettings.timezone);
     const selectedDate = `${local.year}-${String(local.month).padStart(2, '0')}-${String(local.day).padStart(2, '0')}`;
-    const slots = await getAvailableSlots(settings, selectedDate);
+    const slots = await getAvailableSlots(bookingSettings, selectedDate);
     const slot = slots.find((candidate) => candidate.start === start.toISOString());
 
     if (!slot) {
@@ -61,11 +65,13 @@ module.exports = async function bookingHandler(req, res) {
 
     const end = new Date(slot.end);
     const name = `${firstname} ${lastname}`;
-    const dateLabel = formatBookingDate(start, settings.timezone);
-    const calendarEvent = await createCalendarEvent(settings, {
-      summary: `Échange ABINTO — ${name}`,
+    const dateLabel = formatBookingDate(start, bookingSettings.timezone);
+    const calendarEvent = await createCalendarEvent(bookingSettings, {
+      summary: `${service.calendarSummary} — ${name}`,
       description: [
         'Rendez-vous pris depuis le site ABINTO.',
+        `Formule : ${service.label}`,
+        service.paymentNote,
         '',
         `Nom : ${name}`,
         `E-mail : ${email}`,
@@ -73,8 +79,8 @@ module.exports = async function bookingHandler(req, res) {
         `Entreprise : ${company || 'Non renseignée'}`,
         message ? `Contexte : ${message}` : ''
       ].filter(Boolean).join('\n'),
-      start: { dateTime: start.toISOString(), timeZone: settings.timezone },
-      end: { dateTime: end.toISOString(), timeZone: settings.timezone },
+      start: { dateTime: start.toISOString(), timeZone: bookingSettings.timezone },
+      end: { dateTime: end.toISOString(), timeZone: bookingSettings.timezone },
       reminders: { useDefault: true }
     });
 
@@ -84,25 +90,36 @@ module.exports = async function bookingHandler(req, res) {
       phone: escapeHtml(phone || 'Non renseigné'),
       company: escapeHtml(company || 'Non renseignée'),
       message: escapeHtml(message || 'Aucun détail supplémentaire').replaceAll('\n', '<br>'),
-      date: escapeHtml(dateLabel)
+      date: escapeHtml(dateLabel),
+      paymentNote: escapeHtml(service.paymentNote)
     };
-    const ics = createIcs({ id: calendarEvent.id, start, end, name, timezone: settings.timezone });
+    const ics = createIcs({
+      id: calendarEvent.id,
+      start,
+      end,
+      name,
+      timezone: bookingSettings.timezone,
+      summary: service.calendarSummary,
+      description: `${service.label} avec ${name}. ${service.paymentNote}`.trim()
+    });
+    const paymentText = service.paymentNote ? `\n\n${service.paymentNote}` : '';
+    const paymentHtml = service.paymentNote ? `<p><strong>${safe.paymentNote}</strong></p>` : '';
 
     await Promise.allSettled([
-      sendResendEmail(settings, {
+      sendResendEmail(bookingSettings, {
         to: [email],
-        reply_to: settings.ownerEmail,
-        subject: 'Votre échange ABINTO est confirmé',
-        text: `Bonjour ${name},\n\nVotre échange ABINTO est confirmé : ${dateLabel}.\n\nVous recevrez également une invitation agenda. À bientôt !`,
-        html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#171416"><div style="padding:24px;background:#b51f2a;color:#fff"><h1 style="margin:0;font-size:24px">Échange confirmé</h1></div><div style="padding:28px;border:1px solid #e3dbd6;border-top:0;background:#fffdfa"><p>Bonjour ${safe.name},</p><p>Votre échange ABINTO est bien réservé :</p><p style="font-size:18px"><strong>${safe.date}</strong></p><p>Une invitation agenda vous a également été envoyée. À bientôt !</p></div></div>`,
+        reply_to: bookingSettings.ownerEmail,
+        subject: `Votre rendez-vous ABINTO est confirmé${service.id === 'whats-up-danger' ? ' — What’s up danger' : ''}`,
+        text: `Bonjour ${name},\n\nVotre rendez-vous ABINTO est confirmé : ${dateLabel}.${paymentText}\n\nVous recevrez également une invitation agenda. À bientôt !`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#171416"><div style="padding:24px;background:#b51f2a;color:#fff"><h1 style="margin:0;font-size:24px">Rendez-vous confirmé</h1></div><div style="padding:28px;border:1px solid #e3dbd6;border-top:0;background:#fffdfa"><p>Bonjour ${safe.name},</p><p>Votre rendez-vous ABINTO est bien réservé :</p><p style="font-size:18px"><strong>${safe.date}</strong></p>${paymentHtml}<p>Une invitation agenda vous a également été envoyée. À bientôt !</p></div></div>`,
         attachments: [{ filename: 'echange-abinto.ics', content: Buffer.from(ics).toString('base64') }]
       }),
-      sendResendEmail(settings, {
-        to: [settings.ownerEmail],
+      sendResendEmail(bookingSettings, {
+        to: [bookingSettings.ownerEmail],
         reply_to: email,
         subject: `Nouveau rendez-vous ABINTO — ${dateLabel}`,
-        text: `Nouveau rendez-vous ABINTO\n\n${dateLabel}\nNom : ${name}\nE-mail : ${email}\nTéléphone : ${phone || 'Non renseigné'}\nEntreprise : ${company || 'Non renseignée'}\n\nContexte :\n${message || 'Aucun détail supplémentaire'}`,
-        html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#171416"><div style="padding:24px;background:#b51f2a;color:#fff"><h1 style="margin:0;font-size:24px">Nouveau rendez-vous ABINTO</h1></div><div style="padding:28px;border:1px solid #e3dbd6;border-top:0;background:#fffdfa"><p style="font-size:18px"><strong>${safe.date}</strong></p><p><strong>Nom :</strong> ${safe.name}</p><p><strong>E-mail :</strong> ${safe.email}</p><p><strong>Téléphone :</strong> ${safe.phone}</p><p><strong>Entreprise :</strong> ${safe.company}</p><hr style="border:0;border-top:1px solid #e3dbd6;margin:24px 0"><p style="line-height:1.65"><strong>Contexte :</strong><br>${safe.message}</p></div></div>`
+        text: `Nouveau rendez-vous ABINTO\n\n${dateLabel}\nFormule : ${service.label}${paymentText}\nNom : ${name}\nE-mail : ${email}\nTéléphone : ${phone || 'Non renseigné'}\nEntreprise : ${company || 'Non renseignée'}\n\nContexte :\n${message || 'Aucun détail supplémentaire'}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#171416"><div style="padding:24px;background:#b51f2a;color:#fff"><h1 style="margin:0;font-size:24px">Nouveau rendez-vous ABINTO</h1></div><div style="padding:28px;border:1px solid #e3dbd6;border-top:0;background:#fffdfa"><p style="font-size:18px"><strong>${safe.date}</strong></p><p><strong>Formule :</strong> ${escapeHtml(service.label)}</p>${paymentHtml}<p><strong>Nom :</strong> ${safe.name}</p><p><strong>E-mail :</strong> ${safe.email}</p><p><strong>Téléphone :</strong> ${safe.phone}</p><p><strong>Entreprise :</strong> ${safe.company}</p><hr style="border:0;border-top:1px solid #e3dbd6;margin:24px 0"><p style="line-height:1.65"><strong>Contexte :</strong><br>${safe.message}</p></div></div>`
       })
     ]);
 
@@ -110,8 +127,9 @@ module.exports = async function bookingHandler(req, res) {
       ok: true,
       start: slot.start,
       end: slot.end,
-      timezone: settings.timezone,
-      durationMinutes: settings.durationMinutes
+      service: service.id,
+      timezone: bookingSettings.timezone,
+      durationMinutes: bookingSettings.durationMinutes
     });
   } catch (error) {
     console.error('Booking API error:', error);

@@ -4021,3 +4021,42 @@ body[data-page="reservation"] { background: #eee9e5; }
     gap: 16px;
   }
 }
+
+/* --- V24 : réservation de la séance stratégique What’s up danger --- */
+.services-v12 .offer-actions {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+
+.services-v12 .offer-actions .offer-cta {
+  width: 100%;
+}
+
+.services-v12 .offer-cta--booking {
+  color: var(--red);
+}
+
+.services-v12 .offer-cta--booking span {
+  background: var(--ink);
+}
+
+.booking-payment-confirmation {
+  padding: 11px 13px;
+  color: rgba(255,255,255,.88) !important;
+  border-left: 2px solid #fff;
+  background: rgba(255,255,255,.1);
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+
+@media (max-width: 1050px) {
+  .services-v12 .offer-actions {
+    grid-area: cta;
+  }
+
+  .services-v12 .offer-actions .offer-cta {
+    grid-area: auto;
+  }
+}
